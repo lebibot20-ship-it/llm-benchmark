@@ -160,6 +160,41 @@ export const GENERAL_PROMPTS: BenchmarkPrompt[] = [
     prompt: `A farmer has 17 sheep. All but 9 die. How many sheep remain?`,
     maxTokens: 500,
   },
+  {
+    id: "coding-1",
+    category: "Coding",
+    name: "FizzBuzz",
+    prompt: `Write a TypeScript function that takes a number n and returns an array of strings from 1 to n where multiples of 3 are "Fizz", multiples of 5 are "Buzz", and multiples of both are "FizzBuzz".`,
+    maxTokens: 500,
+  },
+  {
+    id: "creative-writing-1",
+    category: "Creative Writing",
+    name: "Short Story Opening",
+    prompt: `Write the opening paragraph of a mystery short story set in a small coastal town during a winter storm.`,
+    maxTokens: 500,
+  },
+  {
+    id: "factual-knowledge-1",
+    category: "Factual Knowledge",
+    name: "Science Explanation",
+    prompt: `Explain how photosynthesis works in 3-4 sentences suitable for a high school student.`,
+    maxTokens: 500,
+  },
+  {
+    id: "translation-1",
+    category: "Translation",
+    name: "English to German",
+    prompt: `Translate the following sentence to German: "Could you please help me find the nearest train station? I have a meeting at 3 PM and I don't want to be late."`,
+    maxTokens: 500,
+  },
+  {
+    id: "summarization-1",
+    category: "Summarization",
+    name: "Article Summary",
+    prompt: `Summarize the following text in 2-3 sentences:\n\nThe global semiconductor shortage that began in 2020 has had far-reaching effects across multiple industries. Automakers were among the hardest hit, with many forced to halt production lines for weeks at a time. Consumer electronics companies also faced delays, leading to higher prices and longer wait times for products ranging from gaming consoles to smartphones. Governments around the world responded by announcing plans to invest billions in domestic chip manufacturing capacity, aiming to reduce dependence on a handful of Asian fabrication facilities.`,
+    maxTokens: 500,
+  },
 ];
 
 export const QUICK_PROMPTS = SUPPORT_PROMPTS.slice(0, 1);

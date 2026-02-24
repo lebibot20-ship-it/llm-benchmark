@@ -4,8 +4,7 @@ import {
   BenchmarkPrompt, 
   BenchmarkResult,
   MODELS,
-  FULL_PROMPTS,
-  QUICK_PROMPTS
+  COMBINED_PROMPTS
 } from "./config";
 
 const openai = new OpenAI({
@@ -37,9 +36,9 @@ export class BenchmarkRunner {
       !this.options.models || this.options.models.includes(m.id)
     );
     
-    const prompts = this.options.quick 
-      ? QUICK_PROMPTS 
-      : FULL_PROMPTS;
+    const prompts = this.options.quick
+      ? COMBINED_PROMPTS.slice(0, 3)
+      : COMBINED_PROMPTS;
 
     console.log(`\n🚀 Starting Benchmark`);
     console.log(`Mode: ${this.options.mode || 'support'}`);
@@ -204,25 +203,3 @@ export class BenchmarkRunner {
   }
 }
 
-// CLI entry point
-if (require.main === module) {
-  const args = process.argv.slice(2);
-  const quick = args.includes("--quick");
-  
-  if (!process.env.OPENROUTER_API_KEY) {
-    console.error("❌ OPENROUTER_API_KEY environment variable required");
-    console.log("\nSet it with:");
-    console.log("  export OPENROUTER_API_KEY=your_key_here");
-    process.exit(1);
-  }
-
-  const runner = new BenchmarkRunner({ quick });
-  
-  runner.run().then(() => {
-    runner.printSummary();
-    runner.saveResults();
-  }).catch(err => {
-    console.error("Benchmark failed:", err);
-    process.exit(1);
-  });
-}

@@ -1,18 +1,18 @@
 # LLM Benchmark
 
-Performance & Accuracy Benchmarking Tool für Large Language Models via OpenRouter.
+Performance & Accuracy Benchmarking Tool for Large Language Models via OpenRouter.
 
 ## Features
 
-- 🚀 Latenz-Messung (TTFT, TBT, Gesamtzeit)
-- 🎯 Qualitätsbewertung der Antworten
-- 📊 Interaktives Dashboard mit Charts
-- 🔄 Vergleich mehrerer Modelle
-- 📝 Automatisierte Testsequenzen
+- 🚀 Latency measurement (TTFT, TBT, total time)
+- 🎯 Response quality assessment
+- 📊 Interactive dashboard with charts
+- 🔄 Multi-model comparison
+- 📝 Automated test sequences
 
-## Modelle
+## Models
 
-Standardmäßig werden getestet:
+Tested by default:
 - Anthropic Claude Opus 4.6
 - OpenAI GPT-4o / ChatGPT 5.3
 - Google Gemini 2.5 Pro
@@ -26,41 +26,41 @@ Standardmäßig werden getestet:
 npm install
 ```
 
-## Konfiguration
+## Configuration
 
-Erstelle eine `.env.local`:
+Create a `.env.local`:
 
 ```
-OPENROUTER_API_KEY=dein_api_key
+OPENROUTER_API_KEY=your_api_key
 ```
 
-## Nutzung
+## Usage
 
-### Benchmark ausführen
+### Run benchmark
 ```bash
 npm run benchmark
 ```
 
-### Schneller Test (1 Prompt pro Modell)
+### Quick test (1 prompt per model)
 ```bash
 npm run benchmark:quick
 ```
 
-### Dashboard starten
+### Start dashboard
 ```bash
 npm run dev
 ```
 
-## Test-Sequenz
+## Test Sequence
 
-Die Benchmarks umfassen:
-1. **Reasoning** - Logische Schlussfolgerungen
-2. **Coding** - Code-Generierung & Debugging
-3. **Creative Writing** - Kreatives Schreiben
-4. **Factual Knowledge** - Faktenwissen
-5. **Translation** - Übersetzungen
-6. **Summarization** - Zusammenfassungen
+The benchmarks cover:
+1. **Reasoning** - Logical deductions
+2. **Coding** - Code generation & debugging
+3. **Creative Writing** - Creative writing tasks
+4. **Factual Knowledge** - Knowledge queries
+5. **Translation** - Language translation
+6. **Summarization** - Text summarization
 
-## Ergebnisse
+## Results
 
-Ergebnisse werden in `results/` gespeichert und im Dashboard visualisiert.
+Results are saved to `results/` and visualized in the dashboard.
