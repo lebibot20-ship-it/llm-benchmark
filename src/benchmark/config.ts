@@ -3,6 +3,10 @@ export interface ModelConfig {
   name: string;
   provider: string;
   openRouterId: string;
+  region: "EU" | "US" | "Global";
+  strengths: string[];
+  recommended?: boolean;
+  isNew?: boolean;
 }
 
 export interface BenchmarkPrompt {
@@ -19,158 +23,109 @@ export interface BenchmarkResult {
   prompt: BenchmarkPrompt;
   response: string;
   metrics: {
-    ttft: number; // Time to first token (ms)
-    tbt: number;  // Time between tokens (ms)
+    ttft: number;
+    tbt: number;
     totalTime: number;
     tokensIn: number;
     tokensOut: number;
   };
-  quality?: {
-    score: number;
-    completeness: number;
-    accuracy: number;
-  };
   timestamp: string;
 }
 
-// Modelle, die getestet werden
+// Latest models from OpenRouter (Feb 2025)
 export const MODELS: ModelConfig[] = [
   {
-    id: "claude-opus-4-6",
-    name: "Claude Opus 4.6",
-    provider: "Anthropic",
-    openRouterId: "anthropic/claude-opus-4-6-20251101",
+    id: "gpt-5.3-codex",
+    name: "GPT-5.3-Codex",
+    provider: "OpenAI",
+    openRouterId: "openai/gpt-5.3-codex",
+    region: "US",
+    strengths: ["Advanced coding", "Agentic workflows"],
+    isNew: true,
   },
   {
-    id: "gpt-4o-latest",
-    name: "GPT-4o Latest",
+    id: "claude-opus-4",
+    name: "Claude Opus 4",
+    provider: "Anthropic",
+    openRouterId: "anthropic/claude-opus-4",
+    region: "Global",
+    strengths: ["Best coding", "Complex reasoning"],
+    isNew: true,
+  },
+  {
+    id: "claude-sonnet-4",
+    name: "Claude Sonnet 4",
+    provider: "Anthropic",
+    openRouterId: "anthropic/claude-sonnet-4",
+    region: "Global",
+    strengths: ["Balanced", "1M context"],
+    isNew: true,
+  },
+  {
+    id: "gemini-3.1-pro",
+    name: "Gemini 3.1 Pro",
+    provider: "Google",
+    openRouterId: "google/gemini-3.1-pro-preview",
+    region: "Global",
+    strengths: ["Frontier reasoning"],
+    isNew: true,
+  },
+  {
+    id: "claude-3.5-sonnet",
+    name: "Claude 3.5 Sonnet",
+    provider: "Anthropic",
+    openRouterId: "anthropic/claude-3.5-sonnet",
+    region: "Global",
+    strengths: ["Support agent", "German"],
+    recommended: true,
+  },
+  {
+    id: "gpt-4o",
+    name: "GPT-4o",
     provider: "OpenAI",
     openRouterId: "openai/gpt-4o",
+    region: "US",
+    strengths: ["All-rounder", "German"],
+    recommended: true,
   },
   {
-    id: "gemini-2-5-pro",
-    name: "Gemini 2.5 Pro",
-    provider: "Google",
-    openRouterId: "google/gemini-2.5-pro-preview-05-06",
-  },
-  {
-    id: "llama-3-3-70b",
-    name: "Llama 3.3 70B",
-    provider: "Meta",
-    openRouterId: "meta-llama/llama-3.3-70b-instruct",
-  },
-  {
-    id: "mistral-large-2",
-    name: "Mistral Large 2",
+    id: "mistral-large",
+    name: "Mistral Large",
     provider: "Mistral",
-    openRouterId: "mistralai/mistral-large-2",
-  },
-  {
-    id: "qwen-2-5-72b",
-    name: "Qwen 2.5 72B",
-    provider: "Alibaba",
-    openRouterId: "qwen/qwen-2.5-72b-instruct",
-  },
-  {
-    id: "deepseek-v3",
-    name: "DeepSeek V3",
-    provider: "DeepSeek",
-    openRouterId: "deepseek/deepseek-chat-v3",
+    openRouterId: "mistralai/mistral-large",
+    region: "EU",
+    strengths: ["GDPR", "EU-hosted"],
+    recommended: true,
   },
 ];
 
-// Test-Prompts
-export const PROMPTS: BenchmarkPrompt[] = [
+export const SUPPORT_PROMPTS: BenchmarkPrompt[] = [
+  {
+    id: "support-faq-1",
+    category: "FAQ",
+    name: "Password Reset",
+    prompt: `You are a customer support agent.\n\nCustomer asks: "I forgot my password. How can I reset it?"\n\nRespond politely with step-by-step instructions.`,
+    maxTokens: 500,
+  },
+  {
+    id: "support-empathy-1",
+    category: "Empathy",
+    name: "Frustrated Customer",
+    prompt: `A frustrated customer writes: "This is the third time your system lost my data! I'm really angry!"\n\nRespond with empathy and offer help.`,
+    maxTokens: 500,
+  },
+];
+
+export const GENERAL_PROMPTS: BenchmarkPrompt[] = [
   {
     id: "reasoning-1",
     category: "Reasoning",
-    name: "Logik-Rätsel",
-    prompt: `Ein Bauer hat 17 Schafe. Alle sterben außer 9. Wie viele Schafe hat der Bauer jetzt?
-
-Erkläre deine Antwort Schritt für Schritt.`,
-    expectedElements: ["9", "achten", "sterben", "überleben"],
+    name: "Logic Puzzle",
+    prompt: `A farmer has 17 sheep. All but 9 die. How many sheep remain?`,
     maxTokens: 500,
-  },
-  {
-    id: "coding-1",
-    category: "Coding",
-    name: "Python Quicksort",
-    prompt: `Schreibe eine effiziente Quicksort-Implementierung in Python.
-
-Anforderungen:
-- In-place Sortierung (möglichst wenig zusätzlicher Speicher)
-- Zeitkomplexität O(n log n) im Durchschnitt
-- Enthält type hints
-- Mit Docstring und Kommentaren`,
-    expectedElements: ["def", "quicksort", "partition", "pivot", "recursive"],
-    maxTokens: 800,
-  },
-  {
-    id: "creative-1",
-    category: "Creative Writing",
-    name: "Kurzgeschichte",
-    prompt: `Schreibe einen Kurzgeschichten-Anfang (max. 150 Wörter) über einen Roboter, der in einem verlassenen Café erwacht.
-
-Stil: Melancholisch, aber hoffnungsvoll`,
-    expectedElements: ["Roboter", "Café", "verlassen"],
-    maxTokens: 600,
-  },
-  {
-    id: "factual-1",
-    category: "Factual Knowledge",
-    name: "Deutsche Geschichte",
-    prompt: `Nenne die Hauptursachen für den Fall der Berliner Mauer im Jahr 1989.
-
-Gib mindestens 3 konkrete Faktoren an und erkläre kurz deren Bedeutung.`,
-    expectedElements: ["1989", "Mauer", "DDR", "Proteste", "Gorbatschow"],
-    maxTokens: 600,
-  },
-  {
-    id: "translation-1",
-    category: "Translation",
-    name: "Technische Übersetzung",
-    prompt: `Übersetze folgenden technischen Text ins Deutsche:
-
-"The API implements rate limiting using a token bucket algorithm. Each client is allocated a fixed number of tokens per minute. When a request is made, a token is consumed. If no tokens remain, the request is queued or rejected with a 429 status code."`,
-    expectedElements: ["API", "Rate Limiting", "Token", "Algorithmus"],
-    maxTokens: 400,
-  },
-  {
-    id: "summary-1",
-    category: "Summarization",
-    name: "Text-Zusammenfassung",
-    prompt: `Fasse folgenden Text in 3 Sätzen zusammen:
-
-"Künstliche Intelligenz hat in den letzten Jahren enorme Fortschritte gemacht. Besonders Large Language Models wie GPT-4, Claude und Gemini können heute komplexe Aufgaben bewältigen, die noch vor wenigen Jahren als unmöglich galten. Diese Modelle werden trainiert, indem sie riesige Mengen an Textdaten analysieren und Muster in der Sprache erlernen. Die Anwendungsbereiche sind vielfältig: von automatischer Textübersetzung über Code-Generierung bis hin zu medizinischer Diagnostik. Kritiker warnen jedoch vor potenziellen Risiken wie Fehlinformationen, Urheberrechtsverletzungen und dem Verlust von Arbeitsplätzen."`,
-    expectedElements: ["KI", "LLM", "Anwendungen", "Risiken"],
-    maxTokens: 400,
-  },
-  {
-    id: "math-1",
-    category: "Mathematics",
-    name: "Berechnung",
-    prompt: `Berechne: Wie viele Möglichkeiten gibt es, aus einer Gruppe von 10 Personen ein Team von 4 Personen auszuwählen?
-
-Zeige den Rechenweg mit der Binomialkoeffizienten-Formel.`,
-    expectedElements: ["210", "C(10,4)", "10!", "4!", "6!"],
-    maxTokens: 500,
-  },
-  {
-    id: "analysis-1",
-    category: "Analysis",
-    name: "Stärken-/Schwächen-Analyse",
-    prompt: `Vergleiche die Stärken und Schwächen von Python und JavaScript für Backend-Entwicklung.
-
-Strukturiere deine Antwort in:
-1. Python Stärken
-2. Python Schwächen  
-3. JavaScript Stärken
-4. JavaScript Schwächen
-5. Fazit: Wann welche Sprache?`,
-    expectedElements: ["Python", "JavaScript", "Backend", "Node.js", "Django"],
-    maxTokens: 800,
   },
 ];
 
-// Schnelle Test-Sequenz (nur 3 Prompts)
-export const QUICK_PROMPTS = PROMPTS.slice(0, 3);
+export const QUICK_PROMPTS = SUPPORT_PROMPTS.slice(0, 1);
+export const FULL_PROMPTS = SUPPORT_PROMPTS;
+export const COMBINED_PROMPTS = [...SUPPORT_PROMPTS, ...GENERAL_PROMPTS];
