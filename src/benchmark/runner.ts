@@ -4,7 +4,8 @@ import {
   BenchmarkPrompt, 
   BenchmarkResult,
   MODELS,
-  PROMPTS 
+  FULL_PROMPTS,
+  QUICK_PROMPTS
 } from "./config";
 
 const openai = new OpenAI({
@@ -20,6 +21,7 @@ interface RunOptions {
   quick?: boolean;
   models?: string[];
   outputDir?: string;
+  mode?: "support" | "general" | "combined";
 }
 
 export class BenchmarkRunner {
@@ -36,10 +38,11 @@ export class BenchmarkRunner {
     );
     
     const prompts = this.options.quick 
-      ? PROMPTS.slice(0, 3) 
-      : PROMPTS;
+      ? QUICK_PROMPTS 
+      : FULL_PROMPTS;
 
     console.log(`\n🚀 Starting Benchmark`);
+    console.log(`Mode: ${this.options.mode || 'support'}`);
     console.log(`Models: ${models.length} (${models.map(m => m.name).join(", ")})`);
     console.log(`Prompts: ${prompts.length}`);
     console.log(`Total runs: ${models.length * prompts.length}\n`);
