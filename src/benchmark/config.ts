@@ -7,6 +7,10 @@ export interface ModelConfig {
   strengths: string[];
   recommended?: boolean;
   isNew?: boolean;
+  pricing?: {
+    inputPer1k: number;   // Cost per 1k input tokens
+    outputPer1k: number;  // Cost per 1k output tokens
+  };
 }
 
 export interface BenchmarkPrompt {
@@ -32,7 +36,8 @@ export interface BenchmarkResult {
   timestamp: string;
 }
 
-// Latest models from OpenRouter (Feb 2025)
+// Latest models from OpenRouter (Feb 2025) with pricing
+// Pricing: inputPer1k / outputPer1k in USD
 export const MODELS: ModelConfig[] = [
   {
     id: "gpt-5.3-codex",
@@ -42,6 +47,7 @@ export const MODELS: ModelConfig[] = [
     region: "US",
     strengths: ["Advanced coding", "Agentic workflows"],
     isNew: true,
+    pricing: { inputPer1k: 0.015, outputPer1k: 0.060 },
   },
   {
     id: "gpt-5.2-chat",
@@ -51,6 +57,7 @@ export const MODELS: ModelConfig[] = [
     region: "US",
     strengths: ["Conversational", "Long context"],
     isNew: true,
+    pricing: { inputPer1k: 0.010, outputPer1k: 0.040 },
   },
   {
     id: "claude-opus-4",
@@ -60,6 +67,7 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Best coding", "Complex reasoning"],
     isNew: true,
+    pricing: { inputPer1k: 0.015, outputPer1k: 0.075 },
   },
   {
     id: "claude-opus-4.6",
@@ -69,6 +77,7 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Latest Opus", "Advanced reasoning"],
     isNew: true,
+    pricing: { inputPer1k: 0.018, outputPer1k: 0.090 },
   },
   {
     id: "claude-sonnet-4",
@@ -78,6 +87,7 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Balanced", "1M context"],
     isNew: true,
+    pricing: { inputPer1k: 0.003, outputPer1k: 0.015 },
   },
   {
     id: "gemini-3.1-pro",
@@ -87,6 +97,7 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Frontier reasoning"],
     isNew: true,
+    pricing: { inputPer1k: 0.00125, outputPer1k: 0.010 },
   },
   {
     id: "kimi-k2.5",
@@ -96,6 +107,7 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Long context", "Chinese & English", "Coding"],
     isNew: true,
+    pricing: { inputPer1k: 0.002, outputPer1k: 0.008 },
   },
   {
     id: "minimax-m2.5",
@@ -105,6 +117,7 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Multilingual", "Reasoning"],
     isNew: true,
+    pricing: { inputPer1k: 0.0015, outputPer1k: 0.006 },
   },
   {
     id: "claude-3.5-sonnet",
@@ -114,6 +127,7 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Support agent", "German"],
     recommended: true,
+    pricing: { inputPer1k: 0.003, outputPer1k: 0.015 },
   },
   {
     id: "gpt-4o",
@@ -123,6 +137,7 @@ export const MODELS: ModelConfig[] = [
     region: "US",
     strengths: ["All-rounder", "German"],
     recommended: true,
+    pricing: { inputPer1k: 0.0025, outputPer1k: 0.010 },
   },
   {
     id: "mistral-large",
@@ -132,6 +147,7 @@ export const MODELS: ModelConfig[] = [
     region: "EU",
     strengths: ["GDPR", "EU-hosted"],
     recommended: true,
+    pricing: { inputPer1k: 0.002, outputPer1k: 0.006 },
   },
 ];
 
