@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "benchmark": "tsx src/benchmark/run.ts",
-    "benchmark:quick": "tsx src/benchmark/run.ts --quick"
+    "benchmark:quick": "tsx src/benchmark/run.ts --quick",
+    "benchmark:context": "tsx src/benchmark/context-run.ts",
+    "benchmark:context:quick": "tsx src/benchmark/context-run.ts --quick"
   },
   "dependencies": {
     "next": "^15.0.0",

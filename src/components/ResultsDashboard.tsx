@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { BenchmarkResult, ModelConfig } from "../../benchmark/config";
+import { BenchmarkResult, ModelConfig, QualityScores } from "../benchmark/config";
 import {
   BarChart,
   Bar,
@@ -36,9 +36,9 @@ interface Props {
 }
 
 export default function ResultsDashboard({ data }: Props) {
-  const [activeTab, setActiveTab] = useState<"overview" | "latency" | "cost" | "quality" | "comparison" | "details">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "latency" | "quality" | "comparison" | "details">("overview");
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<"speed" | "quality" | "cost" | "value">("speed");
+  const [sortBy, setSortBy] = useState<"speed" | "quality" | "cost">("speed");
 
   // Aggregate data
   const modelStats = useMemo(() => aggregateByModel(data.results), [data.results]);
@@ -59,10 +59,7 @@ export default function ResultsDashboard({ data }: Props) {
       case "quality":
         return stats.sort((a, b) => (b.avgQuality || 0) - (a.avgQuality || 0));
       case "cost":
-        return stats.sort((a, b) => a.avgCost - b.avgCost);
-      case "value":
-        // Best value = high tokens/s per dollar
-        return stats.sort((a, b) => (b.avgTokensPerSecond / b.avgCost) - (a.avgTokensPerSecond / a.avgCost));
+        return stats.sort((a, b) => (a.estimatedCost || 0) - (b.estimatedCost || 0));
       default:
         return stats;
     }
@@ -341,14 +338,6 @@ export default function ResultsDashboard({ data }: Props) {
           </div>
           <div className="stat-label">Fastest Model</div>
         </div>
-        <div className="stat-card success">
-          <div className="stat-value">
-            {modelStats.length > 0 
-              ? modelStats.sort((a, b) => a.avgCost - b.avgCost)[0].model.name 
-              : "-"}
-          </div>
-          <div className="stat-label">Cheapest Model</div>
-        </div>
       </div>
 
       {/* Controls */}
@@ -357,7 +346,6 @@ export default function ResultsDashboard({ data }: Props) {
           {[
             { id: "overview", label: "📋 Overview" },
             { id: "latency", label: "⏱️ Latency" },
-            { id: "cost", label: "💰 Cost" },
             { id: "quality", label: "⭐ Quality" },
             { id: "comparison", label: "📈 Comparison" },
             { id: "details", label: "📑 Details" },
@@ -381,8 +369,7 @@ export default function ResultsDashboard({ data }: Props) {
           >
             <option value="speed">⚡ Speed</option>
             <option value="quality">⭐ Quality</option>
-            <option value="cost">💰 Cost (Cheapest)</option>
-            <option value="value">🏆 Best Value</option>
+            <option value="cost">💰 Cost</option>
           </select>
         </div>
 
@@ -417,7 +404,6 @@ export default function ResultsDashboard({ data }: Props) {
       {/* Tab Content */}
       {activeTab === "overview" && <OverviewTab stats={sortedStats} />}
       {activeTab === "latency" && <LatencyTab stats={sortedStats} />}
-      {activeTab === "cost" && <CostTab stats={sortedStats} />}
       {activeTab === "quality" && <QualityTab stats={sortedStats} />}
       {activeTab === "comparison" && <ComparisonTab data={categoryStats} models={filteredStats.map(s => s.model)} />}
       {activeTab === "details" && <DetailsTab stats={sortedStats} results={data.results} />}
@@ -433,7 +419,7 @@ function OverviewTab({ stats }: { stats: ModelStat[] }) {
     name: s.model.name,
     speed: 10000 / s.avgTotalTime, // Inverse for better visualization
     quality: s.avgQuality || Math.random() * 20 + 70, // Placeholder if not measured
-    cost: s.avgCost,
+    cost: s.estimatedCost || 0,
   }));
 
   return (
@@ -502,7 +488,7 @@ function OverviewTab({ stats }: { stats: ModelStat[] }) {
               <div className="metric-unit">tok/s</div>
             </div>
             <div className="metric">
-              <div className="metric-value">${stat.avgCost.toFixed(4)}</div>
+              <div className="metric-value">${(stat.estimatedCost || 0).toFixed(2)}</div>
               <div className="metric-unit">/1k</div>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -559,101 +545,6 @@ function LatencyTab({ stats }: { stats: ModelStat[] }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
-    </>
-  );
-}
-
-function CostTab({ stats }: { stats: ModelStat[] }) {
-  const costData = stats.map(s => ({
-    name: s.model.name,
-    "Input ($/1k)": s.model.pricing?.inputPer1k || 0,
-    "Output ($/1k)": s.model.pricing?.outputPer1k || 0,
-    "Avg Cost/Run": s.avgCost || 0,
-  }));
-
-  const valueData = stats.map(s => ({
-    name: s.model.name,
-    "Speed (tok/s)": s.avgTokensPerSecond,
-    "Cost Efficiency": (s.avgTokensPerSecond / (s.avgCost || 1)) * 0.01,
-  }));
-
-  return (
-    <>
-      <div className="chart-container">
-        <h3 className="chart-title">💰 Pricing Comparison</h3>
-        <p className="chart-subtitle">Cost per 1k tokens (USD) • Lower is cheaper</p>
-        <div style={{ height: "400px" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={costData} layout="vertical" margin={{ left: 100 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" label={{ value: 'Cost ($)', position: 'bottom' }} />
-              <YAxis type="category" dataKey="name" width={120} />
-              <Tooltip formatter={(val: number) => `$${val.toFixed(4)}`} />
-              <Legend />
-              <Bar dataKey="Input ($/1k)" fill="#4f46e5" />
-              <Bar dataKey="Output ($/1k)" fill="#f59e0b" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="chart-container">
-        <h3 className="chart-title">🏆 Cost Efficiency</h3>
-        <p className="chart-subtitle">Tokens per second per dollar • Higher is better value</p>
-        <div style={{ height: "400px" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={valueData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="Cost Efficiency" fill="#10b981" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Cost Breakdown Table */}
-      <div className="chart-container">
-        <h3 className="chart-title">📊 Detailed Cost Breakdown</h3>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
-              <th style={{ padding: "12px", textAlign: "left" }}>Model</th>
-              <th style={{ padding: "12px", textAlign: "right" }}>Input ($/1k)</th>
-              <th style={{ padding: "12px", textAlign: "right" }}>Output ($/1k)</th>
-              <th style={{ padding: "12px", textAlign: "right" }}>Avg Tokens/Run</th>
-              <th style={{ padding: "12px", textAlign: "right" }}>Est. Cost/Run</th>
-              <th style={{ padding: "12px", textAlign: "right" }}>Cost/1k Runs</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.sort((a, b) => (a.avgCost || 0) - (b.avgCost || 0)).map((stat, idx) => (
-              <tr key={stat.model.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
-                <td style={{ padding: "12px" }}>
-                  <strong>{stat.model.name}</strong>
-                  {idx === 0 && <span style={{ marginLeft: 8, padding: "2px 8px", background: "#10b981", color: "white", borderRadius: 4, fontSize: 12 }}>Cheapest</span>}
-                </td>
-                <td style={{ padding: "12px", textAlign: "right" }}>
-                  ${(stat.model.pricing?.inputPer1k || 0).toFixed(4)}
-                </td>
-                <td style={{ padding: "12px", textAlign: "right" }}>
-                  ${(stat.model.pricing?.outputPer1k || 0).toFixed(4)}
-                </td>
-                <td style={{ padding: "12px", textAlign: "right" }}>
-                  {Math.round(stat.avgTokensOut + stat.avgTokensIn)}
-                </td>
-                <td style={{ padding: "12px", textAlign: "right", fontWeight: 600 }}>
-                  ${(stat.avgCost || 0).toFixed(4)}
-                </td>
-                <td style={{ padding: "12px", textAlign: "right" }}>
-                  ${((stat.avgCost || 0) * 1000).toFixed(2)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </>
   );
@@ -781,10 +672,9 @@ interface ModelStat {
   avgTbt: number;
   avgTotalTime: number;
   avgTokensOut: number;
-  avgTokensIn: number;
   avgTokensPerSecond: number;
   avgQuality?: number;
-  avgCost: number;
+  estimatedCost?: number;
   count: number;
 }
 
@@ -802,26 +692,14 @@ function aggregateByModel(results: BenchmarkResult[]): ModelStat[] {
         results: [],
         ttftSum: 0,
         totalSum: 0,
-        tokensInSum: 0,
-        tokensOutSum: 0,
+        tokensSum: 0,
         qualitySum: 0,
-        costSum: 0,
       };
     }
     acc[r.model.id].results.push(r);
     acc[r.model.id].ttftSum += r.metrics.ttft;
     acc[r.model.id].totalSum += r.metrics.totalTime;
-    acc[r.model.id].tokensInSum += r.metrics.tokensIn;
-    acc[r.model.id].tokensOutSum += r.metrics.tokensOut;
-    
-    // Calculate cost based on model pricing
-    const pricing = r.model.pricing;
-    if (pricing) {
-      const inputCost = (r.metrics.tokensIn / 1000) * pricing.inputPer1k;
-      const outputCost = (r.metrics.tokensOut / 1000) * pricing.outputPer1k;
-      acc[r.model.id].costSum += inputCost + outputCost;
-    }
-    
+    acc[r.model.id].tokensSum += r.metrics.tokensOut;
     if (r.quality?.helpfulness) {
       acc[r.model.id].qualitySum += r.quality.helpfulness;
     }
@@ -833,11 +711,11 @@ function aggregateByModel(results: BenchmarkResult[]): ModelStat[] {
     avgTtft: g.ttftSum / g.results.length,
     avgTbt: g.results.reduce((sum: number, r: BenchmarkResult) => sum + (r.metrics.tbt || 0), 0) / g.results.length,
     avgTotalTime: g.totalSum / g.results.length,
-    avgTokensOut: g.tokensOutSum / g.results.length,
-    avgTokensIn: g.tokensInSum / g.results.length,
-    avgTokensPerSecond: (g.tokensOutSum / g.totalSum) * 1000,
+    avgTokensOut: g.tokensSum / g.results.length,
+    avgTokensPerSecond: (g.tokensSum / g.totalSum) * 1000,
     avgQuality: g.qualitySum > 0 ? g.qualitySum / g.results.length : undefined,
-    avgCost: g.costSum / g.results.length,
+    // Rough cost estimation (varies by provider)
+    estimatedCost: (g.tokensSum / 1000) * 0.01, // Placeholder
     count: g.results.length,
   }));
 }

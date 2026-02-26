@@ -1,4 +1,4 @@
-import { PROMPTS } from "../../benchmark/config";
+import { COMBINED_PROMPTS as PROMPTS } from "../../benchmark/config";
 
 export default function PromptsPage() {
   const categories = [...new Set(PROMPTS.map(p => p.category))];

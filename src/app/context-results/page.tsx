@@ -1,25 +1,15 @@
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import Link from "next/link";
-import { BenchmarkResult } from "../../benchmark/config";
-import ResultsDashboard from "../../components/ResultsDashboard";
+import { ContextBenchmarkResult } from "../../benchmark/config";
+import ContextDashboard from "../../components/ContextDashboard";
 
-interface BenchmarkData {
-  metadata: {
-    timestamp: string;
-    totalRuns: number;
-    models: string[];
-    prompts: string[];
-  };
-  results: BenchmarkResult[];
-}
-
-function loadLatestResults(): BenchmarkData | null {
+function loadLatestContextResults(): ContextBenchmarkResult | null {
   const resultsDir = join(process.cwd(), "results");
 
   try {
     const files = readdirSync(resultsDir)
-      .filter(f => f.startsWith("benchmark-") && f.endsWith(".json"))
+      .filter(f => f.startsWith("context-benchmark-") && f.endsWith(".json"))
       .sort()
       .reverse();
 
@@ -33,8 +23,8 @@ function loadLatestResults(): BenchmarkData | null {
   }
 }
 
-export default function ResultsPage() {
-  const data = loadLatestResults();
+export default function ContextResultsPage() {
+  const data = loadLatestContextResults();
 
   if (!data) {
     return (
@@ -43,7 +33,7 @@ export default function ResultsPage() {
           width: 56,
           height: 56,
           borderRadius: "50%",
-          background: "rgba(59, 130, 246, 0.12)",
+          background: "rgba(139, 92, 246, 0.12)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -52,11 +42,14 @@ export default function ResultsPage() {
         }}>
           ?
         </div>
-        <h1 className="page-title" style={{ textAlign: "center" }}>No Results Yet</h1>
+        <h1 className="page-title" style={{ textAlign: "center" }}>No Context Benchmark Results</h1>
         <p style={{ color: "var(--text-secondary)", marginBottom: 28, fontSize: "0.95rem", lineHeight: 1.5 }}>
-          Run a benchmark to generate results. They&#39;ll appear here automatically.
+          Run the context injection benchmark to compare system prompt strategies.
         </p>
-        <pre className="code-block" style={{ textAlign: "left", display: "inline-block" }}>npm run benchmark</pre>
+        <pre className="code-block" style={{ textAlign: "left", display: "inline-block" }}>npm run benchmark:context</pre>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 16 }}>
+          Quick mode: <code style={{ color: "var(--accent-teal)" }}>npm run benchmark:context:quick</code>
+        </p>
         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 24 }}>
           Need help? Check the <Link href="/benchmark">setup guide</Link>.
         </p>
@@ -64,5 +57,5 @@ export default function ResultsPage() {
     );
   }
 
-  return <ResultsDashboard data={data} />;
+  return <ContextDashboard data={data} />;
 }

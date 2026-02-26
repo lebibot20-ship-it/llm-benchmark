@@ -7,10 +7,6 @@ export interface ModelConfig {
   strengths: string[];
   recommended?: boolean;
   isNew?: boolean;
-  pricing?: {
-    inputPer1k: number;   // Cost per 1k input tokens
-    outputPer1k: number;  // Cost per 1k output tokens
-  };
 }
 
 export interface BenchmarkPrompt {
@@ -20,6 +16,22 @@ export interface BenchmarkPrompt {
   prompt: string;
   expectedElements?: string[];
   maxTokens?: number;
+}
+
+export interface TextMetrics {
+  wordCount: number;
+  sentenceCount: number;
+  charCount: number;
+  expectedElementsFound?: number;
+  expectedElementsTotal?: number;
+}
+
+export interface QualityScores {
+  helpfulness: number;  // 1-10
+  relevance: number;    // 1-10
+  coherence: number;    // 1-10
+  accuracy: number;     // 1-10
+  judgeModel: string;
 }
 
 export interface BenchmarkResult {
@@ -33,11 +45,14 @@ export interface BenchmarkResult {
     tokensIn: number;
     tokensOut: number;
   };
+  textMetrics?: TextMetrics;
+  quality?: QualityScores;
   timestamp: string;
 }
 
-// Latest models from OpenRouter (Feb 2025) with pricing
-// Pricing: inputPer1k / outputPer1k in USD
+export const JUDGE_MODEL = "anthropic/claude-haiku-4.5";
+
+// Latest models from OpenRouter (Feb 2025)
 export const MODELS: ModelConfig[] = [
   {
     id: "gpt-5.3-codex",
@@ -47,7 +62,6 @@ export const MODELS: ModelConfig[] = [
     region: "US",
     strengths: ["Advanced coding", "Agentic workflows"],
     isNew: true,
-    pricing: { inputPer1k: 0.015, outputPer1k: 0.060 },
   },
   {
     id: "gpt-5.2-chat",
@@ -57,7 +71,6 @@ export const MODELS: ModelConfig[] = [
     region: "US",
     strengths: ["Conversational", "Long context"],
     isNew: true,
-    pricing: { inputPer1k: 0.010, outputPer1k: 0.040 },
   },
   {
     id: "claude-opus-4",
@@ -67,7 +80,6 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Best coding", "Complex reasoning"],
     isNew: true,
-    pricing: { inputPer1k: 0.015, outputPer1k: 0.075 },
   },
   {
     id: "claude-opus-4.6",
@@ -77,7 +89,6 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Latest Opus", "Advanced reasoning"],
     isNew: true,
-    pricing: { inputPer1k: 0.018, outputPer1k: 0.090 },
   },
   {
     id: "claude-sonnet-4",
@@ -87,7 +98,6 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Balanced", "1M context"],
     isNew: true,
-    pricing: { inputPer1k: 0.003, outputPer1k: 0.015 },
   },
   {
     id: "gemini-3.1-pro",
@@ -97,7 +107,6 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Frontier reasoning"],
     isNew: true,
-    pricing: { inputPer1k: 0.00125, outputPer1k: 0.010 },
   },
   {
     id: "kimi-k2.5",
@@ -107,7 +116,6 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Long context", "Chinese & English", "Coding"],
     isNew: true,
-    pricing: { inputPer1k: 0.002, outputPer1k: 0.008 },
   },
   {
     id: "minimax-m2.5",
@@ -117,7 +125,6 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Multilingual", "Reasoning"],
     isNew: true,
-    pricing: { inputPer1k: 0.0015, outputPer1k: 0.006 },
   },
   {
     id: "claude-3.5-sonnet",
@@ -127,7 +134,6 @@ export const MODELS: ModelConfig[] = [
     region: "Global",
     strengths: ["Support agent", "German"],
     recommended: true,
-    pricing: { inputPer1k: 0.003, outputPer1k: 0.015 },
   },
   {
     id: "gpt-4o",
@@ -137,7 +143,6 @@ export const MODELS: ModelConfig[] = [
     region: "US",
     strengths: ["All-rounder", "German"],
     recommended: true,
-    pricing: { inputPer1k: 0.0025, outputPer1k: 0.010 },
   },
   {
     id: "mistral-large",
@@ -147,7 +152,6 @@ export const MODELS: ModelConfig[] = [
     region: "EU",
     strengths: ["GDPR", "EU-hosted"],
     recommended: true,
-    pricing: { inputPer1k: 0.002, outputPer1k: 0.006 },
   },
 ];
 
@@ -216,3 +220,34 @@ export const GENERAL_PROMPTS: BenchmarkPrompt[] = [
 export const QUICK_PROMPTS = SUPPORT_PROMPTS.slice(0, 1);
 export const FULL_PROMPTS = SUPPORT_PROMPTS;
 export const COMBINED_PROMPTS = [...SUPPORT_PROMPTS, ...GENERAL_PROMPTS];
+
+// ============ Context Benchmark Types ============
+
+export interface ContextBenchmarkRun {
+  strategy: string;
+  query: string;
+  queryId: string;
+  queryCategory: string;
+  runNumber: number;
+  wallTimeMs: number;
+  toolCallCount: number;
+  toolCalls: string[];
+  llmIterations: number;
+  tokensIn: number;
+  tokensOut: number;
+  usedPlanning: boolean;
+  quality?: QualityScores;
+  response: string;
+}
+
+export interface ContextBenchmarkResult {
+  metadata: {
+    timestamp: string;
+    model: string;
+    strategies: string[];
+    queriesCount: number;
+    runsPerQuery: number;
+    mockWorkspace: string;
+  };
+  runs: ContextBenchmarkRun[];
+}
